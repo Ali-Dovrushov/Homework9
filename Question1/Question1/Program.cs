@@ -8,16 +8,26 @@ namespace Question1
         public byte course { get; set; }
         public string surname { get; set; }
 
+        public override bool Equals(object obj)
+        {
+            if (obj.GetType() != this.GetType()) return false;
+
+            Person person = (Person)obj;
+            return (this.idBook == person.idBook);
+        }
+
         public abstract void Print();
     }
 
     class Student : Person
     {
         Person[] data;
+
         public Student()
         {
             data = new Person[100];
         }
+
         public Person this[int index]
         {
             get
@@ -30,20 +40,28 @@ namespace Question1
             }
         }
 
+        public override int GetHashCode()
+        {
+            return course.GetHashCode();
+        }
+
         public override void Print()
         {
-            Console.WriteLine($"Surname: { surname }, Course: { course }, ID card: { idBook }");
+            Console.WriteLine($"Surname: { surname }, Course: { course.ToString() }, ID card: { idBook.ToString() }, HashCodeCourse: { GetHashCode() }");
         }
     }
 
     class Aspirant : Person
     {
         public string desertation { get; set; }
+
         Person[] data;
+
         public Aspirant()
         {
             data = new Person[100];
         }
+
         public Person this[int index]
         {
             get
@@ -55,6 +73,7 @@ namespace Question1
                 data[index] = value;
             }
         }
+
         public override void Print()
         {
             Console.WriteLine($"Surname: { surname }, Course: { course }, ID book: { idBook }, Diplom work: { desertation }");
@@ -218,39 +237,11 @@ namespace Question1
             }
         }
 
-        //public static int CheckerToSameIDCard(int a, int b)
-        //{
-        //    int studentsCounter = 0;
-        //    Student student = new Student();
-        //    c[studentsCounter] = new Student();
-        //    bool che = true;
-        //    do
-        //    {
-        //        for (int i = 0; i < b; i++)
-        //        {
-        //            if (c[i].idBook == a)
-        //            {
-        //                Console.Write("Student ID card can't be same.\nPlease enter again: ");
-        //                studentsCounter++;
-        //                che = true;
-        //                break;
-        //            }
-        //            else
-        //            {
-        //                Console.WriteLine("Okey");
-        //                che = true;
-        //            }
-        //        }
-        //    } while (che == false);
-        //    return a;
-        //}
-
         static void Main(string[] args)
         {
             Student student = new Student();
             Aspirant aspirant = new Aspirant();
             int delete;
-            int case1 = 0;
             int studentsCounter = 0;
             int aspirantsCounter = 0;
             bool selectionForAll = false;
@@ -272,34 +263,41 @@ namespace Question1
                                 Console.Write("Enter course: ");
                                 byte studentCourse = NumberCheckerForCourse();
 
-                                Console.Write("Enter ID card: ");
-                                int studentIDBook = NumberCheckerForId();
-                                if (studentsCounter > 0)
+                                bool sameChecker = true;
+                                do
                                 {
-
-                                    for (int i = 0; i <= studentsCounter; i++)
+                                    Console.Write("Enter ID card: ");
+                                    int studentIDBook = NumberCheckerForId();
+                                    
+                                    if (studentsCounter >= 1)
                                     {
-                                        Console.WriteLine($"{student[i].idBook}");
-                                        if (student[i].idBook == studentIDBook)
+                                        for (int i = 0; i < studentsCounter; i++)
                                         {
-                                            continue;
-                                        }
-                                        else
-                                        {
-                                            student[studentsCounter] = new Student { surname = studentSurname, course = studentCourse, idBook = studentIDBook };
-                                            studentsCounter++;
-
+                                            if (student[0].idBook == studentIDBook)
+                                            {
+                                                Console.WriteLine($"Hash-{student[0].idBook.GetHashCode()}\n0-{student[0].idBook}\nHash-{student[i].idBook.GetHashCode()}\ni-{student[i].idBook}");
+                                                Console.WriteLine("ID card can't be same, please enter again: ");
+                                                sameChecker = false;
+                                            }
+                                            else
+                                            {
+                                                studentsCounter++;
+                                                student[studentsCounter] = new Student { surname = studentSurname, course = studentCourse, idBook = studentIDBook };
+                                               
+                                                selectionForSwitch = true;
+                                                sameChecker = true;
+                                                break;
+                                            }
                                         }
                                     }
-                                }
-                                else
-                                {
-                                    student[studentsCounter] = new Student { surname = studentSurname, course = studentCourse, idBook = studentIDBook };
-                                    studentsCounter++;
-                                }
-                                //student[studentsCounter] = new Student { surname = studentSurname, course = studentCourse, idBook = studentIDBook };
-                                //studentsCounter++;
-                                selectionForSwitch = true;
+                                    else
+                                    {
+                                        student[studentsCounter] = new Student { surname = studentSurname, course = studentCourse, idBook = studentIDBook };
+                                        studentsCounter++;
+                                        selectionForSwitch = true;
+                                        sameChecker = true;
+                                    }
+                                } while (sameChecker == false);
 
                                 Read();
                                 break;
@@ -312,15 +310,43 @@ namespace Question1
                                 Console.Write("Enter course: ");
                                 byte aspirantCourse = NumberCheckerForCourse();
 
-                                Console.Write("Enter ID card: ");
-                                int aspirantIDBook = NumberCheckerForId();
-
                                 Console.Write("Enter diplom work: ");
                                 string diplom = Console.ReadLine();
 
-                                aspirant[aspirantsCounter] = new Aspirant { surname = aspirantSurname, course = aspirantCourse, idBook = aspirantIDBook, desertation = diplom };
-                                aspirantsCounter++;
-                                selectionForSwitch = true;
+                                bool sameChecker = true;
+                                do
+                                {
+                                    Console.Write("Enter ID card: ");
+                                    int aspirantIDBook = NumberCheckerForId();
+
+                                    if (aspirantsCounter > 0)
+                                    {
+                                        for (int i = -1; i < aspirantsCounter; i++)
+                                        {
+                                            if (aspirant[i].idBook == aspirantIDBook)
+                                            {
+                                                Console.WriteLine("ID card can't be same.");
+                                                sameChecker = false;
+                                            }
+                                            else
+                                            {
+                                                aspirantsCounter++;
+                                                aspirant[aspirantsCounter] = new Aspirant { surname = aspirantSurname, course = aspirantCourse, idBook = aspirantIDBook, desertation = diplom };
+
+                                                selectionForSwitch = true;
+                                                sameChecker = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        aspirant[aspirantsCounter] = new Aspirant { surname = aspirantSurname, course = aspirantCourse, idBook = aspirantIDBook, desertation = diplom };
+                                        aspirantsCounter++;
+                                        selectionForSwitch = true;
+                                        sameChecker = true;
+                                    }
+                                } while (sameChecker == false);
 
                                 Read();
                                 break;
